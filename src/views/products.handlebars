@@ -1,0 +1,18 @@
+<div class="welcome-section">
+    <h2 class="welcome-message">Bienvenido {{user}}</h2>
+    <h3 class="user-role">Tu rol es: {{role}}</h3>
+    <button id="logout-button">Cerrar sesión</button>
+</div>
+
+<div>
+{{#each products}}
+    <div class="product-card">
+        <h2 class="product-title">{{this.title}}</h2>
+        <img class="product-image" src="{{this.thumbnail}}" alt="{{this.title}}">
+        <p class="product-description">{{this.description}}</p>
+        <p class="product-price">Precio: {{this.price}}</p>
+    </div>
+{{/each}}
+</div>
+
+<script src="js/logout.js"></script>
