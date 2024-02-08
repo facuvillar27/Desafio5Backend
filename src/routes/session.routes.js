@@ -1,46 +1,75 @@
 import { Router } from "express";
 import User from "../models/user.model.js";
 import { auth } from "../middlewares/index.js";
+import passport from "passport";
+import { generateToken, authToken, createHash } from "../utils.js";
 
 const router = Router();
+
+router.get(
+    "/github",
+    passport.authenticate("github", { scope: ["user:email"] }),
+    async (req, res) => {}
+);
+
+router.get(
+    "/githubcallback",
+    passport.authenticate("github", { failureRedirect: "/login" }),
+    async (req, res) => {
+        req.session.user = req.user
+        req.session.admin = "true"
+        console.log(req.session)
+        res.redirect("/products")
+    });
 
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const result = await User.findOne({ email, password });
     
-    if (result === null) {
+    if (result === null || !isValidPassword(result, password)) {
         res.status(400).json({
             message: "Usuario o contraseña incorrectos",
         });
     } else {
-        req.session.user = email;
-        if (req.session.email === "adminCoder@coder.com" && req.session.password === "adminCod3r123") {
-            req.session.role = "admin";
-        } else {
-            req.session.role = "user";
+        let role = "user"
+        if (email === "adminCoder@coder.com" && password === "adminCod3r123") {
+            role = "admin"
         }
+        req.session.user = email;
+        req.session.role = role;
+        const access_token = generateToken(result);
         res.status(200).json({
-            message: "Login OK"
+            message: "Login OK",
+            role,
+            access_token
         });
     }
+    const access_token = generateToken(result);
+    res.send({status: "success", access_token})
 });
+
+router.get("/current", authToken, (req, res) => {
+    res.send({ status: "success", payload: req.user});
+})
+
 
 router.post("/signup", async (req, res) => {
     const {first_name, last_name, email, password, age} = req.body;
 
     const newUser = {
-        first_name,
-        last_name,
-        email,
-        password,
-        age,
-        role: "user",
+         first_name,
+         last_name,
+         email,
+         password: createHash(password),
+         age,
+         role: "user",
     };
 
     const user = new User(newUser);
-
+    const access_token = generateToken(user);
+    
     const result = await user.save();
-
+    
     if (result === null) {
         return res.status(400).json({
             message: "Error al crear el usuario",
@@ -53,6 +82,7 @@ router.post("/signup", async (req, res) => {
             user: result,
         });
     }
+    res.send({status: "success", access_token})
 });
 
 router.get("/privado", auth, (req, res) => {

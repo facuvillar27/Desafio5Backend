@@ -14,7 +14,6 @@ router.post('/logout', (req, res) => {
             return res.redirect('/login');
         }
         res.clearCookie('sid');
-        res.redirect('/login');
     });
 });
 

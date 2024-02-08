@@ -23,3 +23,12 @@ loginForm.addEventListener('submit', (e) => {
     const password = document.getElementById('password').value
     postLogin(email, password)
 })
+
+document.addEventListener('DOMContentLoaded', () => {
+    const githubButton = document.getElementById('github-button')
+    githubButton.addEventListener('click', (event) => {
+        event.preventDefault()
+        window.location.href = '/api/sessions/github'
+    })
+}
+)
